@@ -1,0 +1,15 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+python-dotenv
+langchain
+langchain-core
+langchain-community
+langchain-huggingface
+langchain-groq
+langchain-chroma
+rank_bm25
+sentence-transformers
+beautifulsoup4
+lxml
