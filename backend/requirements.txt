@@ -8,8 +8,8 @@ langchain-core
 langchain-community
 langchain-huggingface
 langchain-groq
-langchain-chroma
-rank_bm25
-sentence-transformers
-beautifulsoup4
-lxml
+langchain-qdrant
+langchain-cohere
+cohere 
+beautifulsoup4 
+markdownify 
