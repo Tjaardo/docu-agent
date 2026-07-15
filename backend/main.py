@@ -1,4 +1,6 @@
 import os
+import asyncio
+from datetime import datetime, timedelta
 from fastapi import FastAPI
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -29,7 +31,7 @@ qdrant_client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 cohere_api_key = os.getenv("COHERE_API_KEY")
 
 bm25_store = {}
-
+session_last_active = {}
 
 class ScrapeModel(BaseModel):
     url: str
@@ -39,9 +41,40 @@ class QueryModel(BaseModel):
     question: str
     session_id: str
 
+#garbage collector than cleans the Qdrant Collection every 2 hours
+async def garbage_collector():
+    while True:
+        await asyncio.sleep(3600)
+        now = datetime.now()
+        expired_sessions = []
+
+        for session_id, last_active in session_last_active.items():
+            if now - last_active > timedelta(hours=2):
+                expired_sessions.append(session_id)
+
+        for session_id in expired_sessions:
+            try:
+                collection_name = f"session_{session_id}"
+                qdrant_client.delete_collection(collection_name=collection_name)
+
+                if session_id in bm25_store:
+                    del bm25_store[session_id]
+
+                if session_id in session_last_active:
+                    del session_last_active[session_id]
+
+                print(f"delete old session with id: {session_id}")
+            except Exception as e:
+                print(f"Error deleting session with id: {session_id}")
+
+#create a new task for garbage collection
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(garbage_collector())
+
+
 
 #API Endpoints
-
 @app.get("/")
 async def read_root():
     return {"Hello": "World"}
@@ -49,6 +82,7 @@ async def read_root():
 @app.post("/scrape")
 async def scrape_web(data: ScrapeModel):
     try:
+        session_last_active[data.session_id] = datetime.now()
         #use jina to avoid getting blocked by website
         jina_url = f"https://r.jina.ai/{data.url}"
         headers = {
@@ -107,6 +141,8 @@ async def scrape_web(data: ScrapeModel):
 @app.post("/ask")
 async def ask_question(query: QueryModel):
     try:
+        session_last_active[query.session_id] = datetime.now()
+
         if query.session_id not in bm25_store:
             return {"load a website first"}
         
@@ -140,7 +176,7 @@ async def ask_question(query: QueryModel):
         You are a highly technical AI assistant responsible for explaining technical code documentations.
         Explain the question ONLY based on the following context.
         If you can find relevant code in the context, show it!
-        If you can not find an answer from the given context, state that clearly and do NOT hallucinate something!
+        If you can not find an answer from the given context, state that clearly and do NOT hallucinate anything!
         
         Context:
         {context}
@@ -159,7 +195,4 @@ async def ask_question(query: QueryModel):
     except Exception as e:
         return {"Error": f"Error in RAG: {str(e)}"}
 
-@app.post("/clear")
-async def clear_session(data: ScrapeModel):
-    return {"status": f"Cleared Session Data: {data.session_id}"}
 
