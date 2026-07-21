@@ -78,9 +78,9 @@ if st.button("Answer Question", type="primary"):
             if response.status_code == 200 and "Error" not in result:
                 st.write("### Response:")
                 st.info(result.get("Response"))
-                st.caption(f"Used {result.get("Chunks")} for the response")
+                st.caption(f"Used {result.get('Chunks')} for the response")
             else:
-                st.error(f"Something went wrong when trying to answer your question: {result.get("Response", result.get("Error", "unknown error"))}")
+                st.error(f"Something went wrong when trying to answer your question: {result.get('Response', result.get('Error', 'unknown error'))}")
         except Exception as e:
             st.error(f"Could not connect to backend: {str(e)}")
     else:
