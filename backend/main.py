@@ -136,7 +136,7 @@ async def scrape_web(data: ScrapeModel):
                 "Session_ID": data.session_id,
                 "Chunks": len(chunks)}
     except Exception as e:
-        return {"ERROR": f"could not scrape: {str(e)}"}
+        return {"Error": f"could not scrape: {str(e)}"}
 
 @app.post("/ask")
 async def ask_question(query: QueryModel):
@@ -144,7 +144,7 @@ async def ask_question(query: QueryModel):
         session_last_active[query.session_id] = datetime.now()
 
         if query.session_id not in bm25_store:
-            return {"load a website first"}
+            return {"Error": "load a website first"}
         
         collection_name = f"session_{query.session_id}"
         vector_store = QdrantVectorStore(

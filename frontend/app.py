@@ -54,7 +54,8 @@ if scrape_button:
                 if response.status_code == 200 and "Error" not in result:
                     st.success("Successfully loaded documentation to database.")
                 else:
-                    st.error(f"Something went wrong when uploading documentation to database: {response.status_code}")
+                    error_msg = result.get("Error", "Unbekannter Fehler")
+                    st.error(f"Upload failed: {error_msg}")
             except Exception as e:
                 st.error(f"Could not connect to backend: {str(e)}")
     else:

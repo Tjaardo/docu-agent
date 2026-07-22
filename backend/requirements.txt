@@ -7,6 +7,7 @@ beautifulsoup4
 markdownify
 langchain
 langchain-core
+langchain-classic
 langchain-community
 langchain-text-splitters
 langchain-huggingface
@@ -15,3 +16,5 @@ qdrant-client
 langchain-cohere
 langchain-groq
 sentence-transformers
+rank_bm25
+cohere
